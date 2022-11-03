@@ -54,6 +54,7 @@ class GameCore {
     }
 
     if (!this.isEmptyTile()) {
+      console.log("You loose");
       return;
     }
 

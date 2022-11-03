@@ -18,16 +18,16 @@ onMounted(() => {
 
 <template>
   <div>
-    <div>
-      <h1>2048</h1>
-      <a href="#rules">Check how to play</a>
-      <div>
-        <p>Score: {{ score }}</p>
-        <p>Best: 0</p>
-      </div>
-      <div ref="gameRef"></div>
-      <button type="button">New game</button>
-    </div>
+    <h1>2048</h1>
+    <a href="#rules">Check how to play</a>
+    <p>Score: {{ score }}</p>
+    <p>Best: 0</p>
+    <button type="button">New game</button>
+  </div>
+  <div class="board-wrapper">
+    <div ref="gameRef"></div>
+  </div>
+  <div>
     <h1>Game</h1>
     <p id="rules">
       <b>Rules:</b> Use your arrow keys or w,a,s,d keys to move the tiles. Tiles

@@ -1,9 +1,17 @@
+.board-wrapper {
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #e5e4eb;
+  display: inline-block;
+}
+
 .board {
   display: flex;
   flex-wrap: wrap;
-  border: 1px solid red;
   justify-content: space-between;
+  border-radius: 10px;
 }
+
 .tile {
   border-radius: 10px;
   display: flex;
@@ -11,44 +19,46 @@
   align-items: center;
   font-style: bold;
   font-size: 1.8em;
+  color: white;
+ 
 
   &--c-0 {
-    background-color: grey;
+    background-color: #1c1735;
   }
   &--c-1 {
-    background-color: #BB8FCE;
+    background-color: #b0cc44;
   }
   &--c-2 {
-    background-color: #A569BD;
+    background-color: #78ba3f;
   }
   &--c-4 {
-    background-color: #AF7AC5;
+    background-color: #3ab074;
   }
   &--c-8 {
-    background-color: #9B59B6;
+    background-color: #2da8e1;
   }
   &--c-16 {
-    background-color: #AED6F1;
+    background-color: #3566af;
   }
   &--c-32 {
-    background-color: #85C1E9;
+    background-color: #514697;
   }
   &--c-64 {
-    background-color: #5DADE2;
+    background-color: #7d4394;
   }
   &--c-128 {
-    background-color: #3498DB;
+    background-color: #c0308a;
   }
   &--c-256 {
-    background-color: #2E86C1;
+    background-color: #db2f4e;
   }
-  &--c-256 {
-    background-color: #2874A6;
+  &--c-512 {
+    background-color: #e04932;
   }
   &--c-1024 {
-    background-color: #21618C;
+    background-color: #e96125;
   }
   &--c-2048 {
-    background-color: #1B4F72;
+    background-color: #ff0000;
   }
 }
