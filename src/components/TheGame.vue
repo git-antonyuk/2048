@@ -5,19 +5,33 @@ import { ref, onMounted } from "vue";
 let game;
 const gameRef = ref();
 const score = ref(0);
+const gameWin = ref(false);
+const gameOver = ref(false);
 
 const updateScore = (num: number) => {
   score.value = num;
 };
 
+const updateGameWin = () => {
+  gameWin.value = true;
+};
+
+const updateGameOver = () => {
+  gameOver.value = true;
+};
+
 onMounted(() => {
   game = new GameCore(gameRef.value);
-  game.onUpdateScope(updateScore);
+  game.onUpdateScore(updateScore);
+  game.onUpdateWin(updateGameWin);
+  game.onUpdateGameOver(updateGameOver);
 });
 </script>
 
 <template>
   <div>
+    <div v-if="gameWin">Congrats, you win the game 💫!</div>
+    <div v-if="gameOver">Game Over 😩!</div>
     <h1>2048</h1>
     <a href="#rules">Check how to play</a>
     <p>Score: {{ score }}</p>

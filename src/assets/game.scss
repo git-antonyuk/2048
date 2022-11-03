@@ -61,4 +61,10 @@
   &--c-2048 {
     background-color: #ff0000;
   }
+
+  &--c--1 {
+    background-image: url("/img/stop.png");
+    background-size: cover;
+    font-size: 0;
+  }
 }
