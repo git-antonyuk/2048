@@ -1,5 +1,20 @@
 import HtmlBoardUI from "./HtmlBoardUI";
 
+interface GameCoreProps {
+  gameWrapper: HTMLDivElement;
+  gameSize?: number;
+  initialBoard?: number[][];
+  obstaclesNum?: number;
+}
+
+/**
+ * TODO:
+ * - Save Game status (score and board state) in localstorage
+ * - Share game using query
+ * - Popup component
+ * - New Game form (UI for size of board / UI of obstacles)
+ */
+
 class GameCore {
   private gameWrapper: HTMLDivElement;
   private tileSize = 90;
@@ -10,34 +25,50 @@ class GameCore {
   private boardUI: HtmlBoardUI | null = null;
   private winNum = 2048;
 
-  constructor(gameWrapper: HTMLDivElement, gameSize = 6) {
+  constructor({
+    gameWrapper,
+    gameSize,
+    initialBoard,
+    obstaclesNum,
+  }: GameCoreProps) {
     this.gameWrapper = gameWrapper;
-    this.setBoard(gameSize);
+    this.setBoard(gameSize, initialBoard);
     this.initBoard();
     this.addKeyboardListeners();
-    this.initGame();
+    if (!initialBoard) {
+      this.initGame(obstaclesNum);
+    }
 
     // for (let index = 0; index < 3000; index++) {
     //   this.slideUp();
     // }
   }
 
-  private setBoard(gameSize: number) {
-    for (let c = 0; c < gameSize; c++) {
-      const row = [];
-      for (let r = 0; r < gameSize; r++) {
-        row.push(0);
+  private setBoard(gameSize?: number, initialBoard?: number[][]) {
+    if (initialBoard) {
+      this.board = initialBoard;
+    }
+    if (gameSize && !initialBoard) {
+      for (let c = 0; c < gameSize; c++) {
+        const row = [];
+        for (let r = 0; r < gameSize; r++) {
+          row.push(0);
+        }
+        this.board.push(row);
       }
-      this.board.push(row);
     }
 
     this.columns = this.board.length;
     this.rows = this.board[0].length;
   }
 
-  private initGame() {
+  private initGame(obstaclesNum?: number) {
     this.setRandomTileNum(2);
-    // this.setRandomTileNum(-1);
+    if (obstaclesNum) {
+      for (let i = 0; i < obstaclesNum; i++) {
+        this.setRandomTileNum(-1);
+      }
+    }
   }
 
   private isEmptyTile() {
@@ -82,7 +113,6 @@ class GameCore {
       tileSize: this.tileSize,
       rows: this.rows,
       columns: this.columns,
-      board: this.board,
     });
 
     this.drawTiles();
@@ -114,37 +144,106 @@ class GameCore {
     }
   }
 
-  private removeZeros(row: number[]) {
-    return row.filter((n) => n !== 0);
+  private removeZeros(rows: number[][]) {
+    const arr = [];
+    for (let i = 0; i < rows.length; i++) {
+      arr[i] = rows[i].filter((n) => n !== 0);
+    }
+    return arr;
   }
 
-  private addZeros(row: number[]) {
-    for (let r = 0; r < this.rows; r++) {
-      if (!row[r]) {
-        row.push(0);
+  private addZeros(rows: number[][], arrLengths: number[]) {
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+
+      for (let a = 0; a < arrLengths[i]; a++) {
+        if (!row[a]) {
+          row.push(0);
+        }
       }
+
+      rows[i] = row;
     }
-    return row;
+
+    return rows;
+  }
+
+  private splitRow(row: number[]) {
+    const arr: number[][] = [];
+    let chainIndex = 0;
+
+    const add = (num: number) => {
+      if (Array.isArray(arr[chainIndex])) {
+        arr[chainIndex].push(num);
+        return;
+      }
+      arr[chainIndex] = [];
+      arr[chainIndex].push(num);
+    };
+
+    for (let i = 0; i < row.length; i++) {
+      if (
+        row[i] < 0 &&
+        arr[chainIndex]?.length &&
+        arr[chainIndex]?.[arr[chainIndex]?.length - 1] !== -1
+      ) {
+        chainIndex++;
+      }
+
+      if (arr[chainIndex]?.[arr[chainIndex]?.length - 1] === -1) {
+        if (row[i] !== -1) {
+          chainIndex++;
+        }
+      }
+
+      add(row[i]);
+    }
+
+    return arr;
+  }
+
+  private getChunksLengths(arr: number[][]) {
+    return arr.reduce((acc, list) => {
+      acc.push(list.length);
+      return acc;
+    }, []);
+  }
+
+  private flatten(localRow: number[][]) {
+    let res: number[] = [];
+
+    for (let i = 0; i < localRow.length; i++) {
+      res = res.concat(localRow[i]);
+    }
+
+    return res;
   }
 
   private slide(row: number[]) {
-    row = this.removeZeros(row);
-    for (let i = 0; i < row.length - 1; i++) {
-      if (row[i] === row[i + 1]) {
-        row[i] *= 2;
-        row[i + 1] = 0;
-        this.score += row[i];
+    let localRow = this.splitRow(row);
+    const chunksLengths = this.getChunksLengths(localRow);
+    localRow = this.removeZeros(localRow);
 
-        // Win Game
-        if (row[i] === this.winNum) {
-          this.onUpdateWinFunction();
+    for (let l = 0; l < localRow.length; l++) {
+      const r = localRow[l];
+      for (let i = 0; i < r.length - 1; i++) {
+        if (r[i] > 0 && r[i] === r[i + 1]) {
+          r[i] *= 2;
+          r[i + 1] = 0;
+          this.score += r[i];
+          // Win Game
+          if (r[i] === this.winNum) {
+            this.onUpdateWinFunction();
+          }
         }
       }
+      localRow[l] = r;
     }
-    row = this.removeZeros(row);
-    row = this.addZeros(row);
+
+    localRow = this.removeZeros(localRow);
+    localRow = this.addZeros(localRow, chunksLengths);
     this.onUpdateScoreFunction(this.score);
-    return row;
+    return this.flatten(localRow);
   }
 
   private slideLeft() {

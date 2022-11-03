@@ -21,7 +21,18 @@ const updateGameOver = () => {
 };
 
 onMounted(() => {
-  game = new GameCore(gameRef.value);
+  const sample = [
+    [-1, 2, -1, 2, 2],
+    [2, -1, -1, 4, -1],
+    [2, 0, 2, 2, 2],
+    [-1, 2, 2, 2, -1],
+    [2, 2, -1, 2, 2],
+  ];
+  game = new GameCore({
+    gameWrapper: gameRef.value,
+    gameSize: 6,
+    obstaclesNum: 2,
+  });
   game.onUpdateScore(updateScore);
   game.onUpdateWin(updateGameWin);
   game.onUpdateGameOver(updateGameOver);

@@ -3,7 +3,6 @@ interface IHtmlBoardUIProps {
   tileSize: number;
   rows: number;
   columns: number;
-  board: number[][];
 }
 
 class HtmlBoardUI {
