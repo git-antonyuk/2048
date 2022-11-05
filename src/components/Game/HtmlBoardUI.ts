@@ -30,6 +30,11 @@ class HtmlBoardUI {
     this.wrapper.style.width = `${width}px`;
   }
 
+  public setDisabled(payload: boolean) {
+    this.wrapper.style.opacity = payload ? "0.5" : "";
+    this.wrapper.style.cursor = payload ? "not-allowed" : "inherit";
+  }
+
   public drawTile(r: number, c: number, num: number) {
     const id = `t-${r}-${c}`;
     const divElement = document.createElement("div");

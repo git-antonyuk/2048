@@ -1,5 +1,4 @@
 @import './base.scss';
-@import './game.scss';
 
 #app {
   margin: 0 auto;
@@ -7,12 +6,44 @@
   font-weight: normal;
 }
 
+h1, .h1 {
+  font-weight: 500;
+  font-size: 2.6rem;
+}
+
+h2, .h2 {
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+h3, .h3 {
+  font-weight: 500;
+  font-size: 1.4rem;
+}
+
 a,
 .green {
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
+  cursor: pointer;
 }
+
+button {
+  padding: 10px 16px;
+  background: var(--color-text);
+  color: var(--color-background);
+  border-radius: 8px;
+  box-shadow: none;
+  border: 0;
+  cursor: pointer;
+  transition: 0.4s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
 
 @media (hover: hover) {
   a:hover {

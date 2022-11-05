@@ -3,15 +3,14 @@ import HtmlBoardUI from "./HtmlBoardUI";
 interface GameCoreProps {
   gameWrapper: HTMLDivElement;
   gameSize?: number;
-  initialBoard?: number[][];
   obstaclesNum?: number;
 }
 
 /**
  * TODO:
- * - Save Game status (score and board state) in localstorage
- * - Share game using query
- * - Popup component
+ * - ✅ Save Game status (score and board state) in localstorage
+ * - ✅ Share game using query
+ * - ✅ Notifications component
  * - New Game form (UI for size of board / UI of obstacles)
  */
 
@@ -24,31 +23,90 @@ class GameCore {
   public score = 0;
   private boardUI: HtmlBoardUI | null = null;
   private winNum = 2048;
+  private disabled = false;
 
-  constructor({
-    gameWrapper,
-    gameSize,
-    initialBoard,
-    obstaclesNum,
-  }: GameCoreProps) {
+  constructor({ gameWrapper, gameSize, obstaclesNum }: GameCoreProps) {
     this.gameWrapper = gameWrapper;
-    this.setBoard(gameSize, initialBoard);
+    this.setBoard(gameSize);
     this.initBoard();
     this.addKeyboardListeners();
-    if (!initialBoard) {
+
+    const gameStorage = this.getGameStateFromStorage();
+    if (!gameStorage) {
       this.initGame(obstaclesNum);
     }
-
-    // for (let index = 0; index < 3000; index++) {
-    //   this.slideUp();
-    // }
+  }
+  // Public Events
+  private onUpdateScoreFunction: Function = function () {};
+  public onUpdateScore(fn: Function) {
+    this.onUpdateScoreFunction = fn;
   }
 
-  private setBoard(gameSize?: number, initialBoard?: number[][]) {
-    if (initialBoard) {
-      this.board = initialBoard;
+  private onUpdateWinFunction: Function = function () {};
+  public onUpdateWin(fn: Function) {
+    this.onUpdateWinFunction = fn;
+  }
+
+  private onUpdateGameOverFunction: Function = function () {};
+  public onUpdateGameOver(fn: Function) {
+    this.onUpdateGameOverFunction = fn;
+  }
+
+  // Public Methods
+  public setDisabled(payload: boolean) {
+    this.disabled = payload;
+    this.boardUI?.setDisabled(payload);
+  }
+  public getScore() {
+    return this.score;
+  }
+  public getSharedLink() {
+    return `${window.location.origin}?board=${JSON.stringify(
+      this.board
+    )}&score=${this.score}`;
+  }
+
+  // Core
+  private getUrlQueryParams() {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    return Object.fromEntries(urlSearchParams.entries());
+  }
+  private clearUrlQueryParams() {
+    window.history.replaceState({}, "", "/");
+  }
+  private getGameStateFromStorage() {
+    const params = this.getUrlQueryParams();
+    const board = params.board || window.localStorage.getItem("board");
+    const score = params.score || window.localStorage.getItem("score");
+
+    if (params.board || params.score) {
+      this.clearUrlQueryParams();
     }
-    if (gameSize && !initialBoard) {
+
+    if (!board || !score) {
+      return null;
+    }
+
+    return {
+      board: JSON.parse(board),
+      score: +score,
+    };
+  }
+  private setGameStateToStorage() {
+    window.localStorage.setItem("board", JSON.stringify(this.board));
+    window.localStorage.setItem("score", `${this.score}`);
+  }
+  private setBoard(gameSize?: number) {
+    const gameStorage = this.getGameStateFromStorage();
+
+    if (gameStorage) {
+      this.board = gameStorage.board;
+      this.score = gameStorage.score;
+      this.setColumnsAndRows();
+      return;
+    }
+
+    if (gameSize) {
       for (let c = 0; c < gameSize; c++) {
         const row = [];
         for (let r = 0; r < gameSize; r++) {
@@ -57,11 +115,12 @@ class GameCore {
         this.board.push(row);
       }
     }
-
+    this.setColumnsAndRows();
+  }
+  private setColumnsAndRows() {
     this.columns = this.board.length;
     this.rows = this.board[0].length;
   }
-
   private initGame(obstaclesNum?: number) {
     this.setRandomTileNum(2);
     if (obstaclesNum) {
@@ -70,7 +129,6 @@ class GameCore {
       }
     }
   }
-
   private isEmptyTile() {
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.columns; c++) {
@@ -82,7 +140,6 @@ class GameCore {
 
     return false;
   }
-
   private setRandomTileNum(num = 1) {
     if (!this.boardUI) {
       console.warn("drawTiles: Board UI not initialized");
@@ -106,7 +163,6 @@ class GameCore {
       }
     }
   }
-
   private initBoard() {
     this.boardUI = new HtmlBoardUI({
       wrapper: this.gameWrapper,
@@ -117,7 +173,6 @@ class GameCore {
 
     this.drawTiles();
   }
-
   private drawTiles() {
     if (!this.boardUI) {
       console.warn("drawTiles: Board UI not initialized");
@@ -130,7 +185,6 @@ class GameCore {
       }
     }
   }
-
   private updateTiles() {
     if (!this.boardUI) {
       console.warn("updateTiles: Board UI not initialized");
@@ -143,7 +197,6 @@ class GameCore {
       }
     }
   }
-
   private removeZeros(rows: number[][]) {
     const arr = [];
     for (let i = 0; i < rows.length; i++) {
@@ -151,7 +204,6 @@ class GameCore {
     }
     return arr;
   }
-
   private addZeros(rows: number[][], arrLengths: number[]) {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -167,7 +219,6 @@ class GameCore {
 
     return rows;
   }
-
   private splitRow(row: number[]) {
     const arr: number[][] = [];
     let chainIndex = 0;
@@ -201,14 +252,12 @@ class GameCore {
 
     return arr;
   }
-
   private getChunksLengths(arr: number[][]) {
     return arr.reduce((acc, list) => {
       acc.push(list.length);
       return acc;
     }, []);
   }
-
   private flatten(localRow: number[][]) {
     let res: number[] = [];
 
@@ -218,7 +267,6 @@ class GameCore {
 
     return res;
   }
-
   private slide(row: number[]) {
     let localRow = this.splitRow(row);
     const chunksLengths = this.getChunksLengths(localRow);
@@ -245,8 +293,10 @@ class GameCore {
     this.onUpdateScoreFunction(this.score);
     return this.flatten(localRow);
   }
-
   private slideLeft() {
+    if (this.disabled) {
+      return;
+    }
     for (let r = 0; r < this.rows; r++) {
       let row = this.board[r];
       row = this.slide(row);
@@ -254,8 +304,10 @@ class GameCore {
     }
     this.onSlideEnd();
   }
-
   private slideRight() {
+    if (this.disabled) {
+      return;
+    }
     for (let r = 0; r < this.rows; r++) {
       let row = this.board[r];
       row.reverse();
@@ -265,8 +317,10 @@ class GameCore {
     }
     this.onSlideEnd();
   }
-
   private slideUp() {
+    if (this.disabled) {
+      return;
+    }
     for (let c = 0; c < this.columns; c++) {
       let rowFromColumn = this.board.map((_, r) => this.board[r][c]);
       rowFromColumn = this.slide(rowFromColumn);
@@ -277,8 +331,10 @@ class GameCore {
     }
     this.onSlideEnd();
   }
-
   private slideDown() {
+    if (this.disabled) {
+      return;
+    }
     for (let c = 0; c < this.columns; c++) {
       let rowFromColumn = this.board.map((_, r) => this.board[r][c]);
       rowFromColumn.reverse();
@@ -291,7 +347,6 @@ class GameCore {
     }
     this.onSlideEnd();
   }
-
   private canMove() {
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.columns; c++) {
@@ -318,7 +373,6 @@ class GameCore {
 
     return false;
   }
-
   private onSlideEnd() {
     this.updateTiles();
     this.setRandomTileNum();
@@ -326,8 +380,8 @@ class GameCore {
     if (!this.canMove()) {
       this.onUpdateGameOverFunction();
     }
+    this.setGameStateToStorage();
   }
-
   private addKeyboardListeners() {
     document.addEventListener("keydown", (event) => {
       switch (event.key) {
@@ -359,22 +413,6 @@ class GameCore {
           break;
       }
     });
-  }
-
-  // Events
-  private onUpdateScoreFunction: Function = function () {};
-  public onUpdateScore(fn: Function) {
-    this.onUpdateScoreFunction = fn;
-  }
-
-  private onUpdateWinFunction: Function = function () {};
-  public onUpdateWin(fn: Function) {
-    this.onUpdateWinFunction = fn;
-  }
-
-  private onUpdateGameOverFunction: Function = function () {};
-  public onUpdateGameOver(fn: Function) {
-    this.onUpdateGameOverFunction = fn;
   }
 }
 
