@@ -6,7 +6,7 @@ export const getUrlQueryParams = () => {
 };
 
 export const clearUrlQueryParams = () => {
-  window.history.replaceState({}, "", "/");
+  window.history.replaceState({}, "", "/2048/");
 };
 
 export const getGameStateFromLocalStorage = () => {

@@ -69,9 +69,9 @@ class GameCore {
     return this.score;
   }
   public getSharedLink() {
-    return `${window.location.origin}?board=${JSON.stringify(
-      this.board
-    )}&score=${this.score}`;
+    return `${window.location.href}?board=${JSON.stringify(this.board)}&score=${
+      this.score
+    }`;
   }
 
   // Core
