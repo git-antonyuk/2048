@@ -19,7 +19,7 @@ class GameCore {
   private rows = 0;
   private columns = 0;
   private board: number[][] = [];
-  public score = 0;
+  private score = 0;
   private boardUI: HtmlBoardUI | null = null;
   private winNum = 2048;
   private disabled = false;

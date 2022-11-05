@@ -73,7 +73,7 @@ onMounted(() => {
   game = new GameCore({
     gameWrapper: gameRef.value,
     gameSize: 6,
-    obstaclesNum: 2,
+    obstaclesNum: 0,
   });
   updateScore(game.getScore());
   game.onUpdateScore(updateScore);
