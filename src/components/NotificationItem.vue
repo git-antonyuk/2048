@@ -39,7 +39,8 @@ const { closeNotification } = useNotifications();
   width: 100%;
   padding: 20px 16px;
   border-radius: 10px;
-  background-color: white;
+  background: var(--color-text);
+  color: var(--color-background);
   overflow: hidden;
   border: 1px solid black;
 

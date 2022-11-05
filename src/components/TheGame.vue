@@ -5,19 +5,29 @@ import useNotifications from "@/composables/useNotifications";
 import HowToPlay from "./HowToPlay.vue";
 import TheScore from "./TheScore.vue";
 import GameActions from "./GameActions.vue";
+import NewGameForm from "./NewGameForm.vue";
 const { openNotification } = useNotifications();
 
 let game: GameCore;
 const gameRef = ref();
 const score = ref(0);
-const gameWin = ref(false);
+const showNewGameForm = ref(false);
+
+const setShowNewGameForm = (payload: boolean) => {
+  showNewGameForm.value = payload;
+};
 
 const updateScore = (num: number) => {
   score.value = num;
 };
 
 const updateGameWin = () => {
-  gameWin.value = true;
+  game.setDisabled(true);
+  openNotification({
+    title: "WIN WIN WIN!",
+    message: "Cool! Let's play one more time, start new game! 🤘",
+    type: "success",
+  });
 };
 
 const updateGameOver = () => {
@@ -31,13 +41,10 @@ const updateGameOver = () => {
 
 const getSharedLink = () => {
   const link = game?.getSharedLink();
-
   if (!link) {
     return;
   }
-
   navigator?.clipboard?.writeText(link);
-
   openNotification({
     title: "Link copied to clipboard!",
     message: "Send this link to your friend 😎",
@@ -46,10 +53,19 @@ const getSharedLink = () => {
 };
 
 const newGame = () => {
-  openNotification({
-    title: "New game 1",
-    message: "New game message",
-  });
+  setShowNewGameForm(true);
+};
+
+const startNewGame = ({
+  obstacles,
+  boardSize,
+}: {
+  obstacles: number;
+  boardSize: number;
+}) => {
+  game.setDisabled(false);
+  setShowNewGameForm(false);
+  game.startNewGame(boardSize, obstacles);
 };
 
 onMounted(() => {
@@ -67,11 +83,23 @@ onMounted(() => {
 
 <template>
   <div>
-    <div v-if="gameWin">Congrats, you win the game 💫!</div>
     <h1>2048</h1>
     <HowToPlay />
     <TheScore :score="score" />
-    <GameActions @onNewGame="newGame" @onGetSharedLink="getSharedLink" />
+    <GameActions
+      @onNewGame="newGame"
+      @onGetSharedLink="getSharedLink"
+      :showNewGameForm="showNewGameForm"
+    />
+    <NewGameForm
+      v-if="showNewGameForm"
+      @onSubmit="startNewGame"
+      @onCancel="
+        () => {
+          setShowNewGameForm(false);
+        }
+      "
+    />
   </div>
   <div class="board-wrapper">
     <div ref="gameRef"></div>

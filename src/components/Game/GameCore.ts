@@ -53,6 +53,14 @@ class GameCore {
   }
 
   // Public Methods
+  public startNewGame(boardSize: number, obstacles: number) {
+    this.board = [];
+    this.clearGameStorage();
+    this.boardUI?.destroy();
+    this.setBoard(boardSize);
+    this.initBoard();
+    this.initGame(obstacles);
+  }
   public setDisabled(payload: boolean) {
     this.disabled = payload;
     this.boardUI?.setDisabled(payload);
@@ -95,6 +103,10 @@ class GameCore {
   private setGameStateToStorage() {
     window.localStorage.setItem("board", JSON.stringify(this.board));
     window.localStorage.setItem("score", `${this.score}`);
+  }
+  private clearGameStorage() {
+    window.localStorage.removeItem("board");
+    window.localStorage.removeItem("score");
   }
   private setBoard(gameSize?: number) {
     const gameStorage = this.getGameStateFromStorage();
@@ -361,10 +373,11 @@ class GameCore {
         }
 
         if (
-          current === up ||
-          current === right ||
-          current === down ||
-          current === left
+          current >= 0 &&
+          (current === up ||
+            current === right ||
+            current === down ||
+            current === left)
         ) {
           return true;
         }
@@ -376,7 +389,6 @@ class GameCore {
   private onSlideEnd() {
     this.updateTiles();
     this.setRandomTileNum();
-    // Game Over
     if (!this.canMove()) {
       this.onUpdateGameOverFunction();
     }

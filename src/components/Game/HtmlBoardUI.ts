@@ -30,6 +30,10 @@ class HtmlBoardUI {
     this.wrapper.style.width = `${width}px`;
   }
 
+  public destroy() {
+    this.wrapper.innerHTML = "";
+  }
+
   public setDisabled(payload: boolean) {
     this.wrapper.style.opacity = payload ? "0.5" : "";
     this.wrapper.style.cursor = payload ? "not-allowed" : "inherit";
