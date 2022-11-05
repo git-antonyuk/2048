@@ -31,11 +31,11 @@ npm run lint
 
 - Default start: 6x6, one random tile with 2
 
-![](./docs/img/default-start.png)
+![](./docs_img/default-start.png)
 
 - Read rules before play
 
-![](./docs/img/rules.gif)
+![](./docs_img/rules.gif)
 
 - Score, animated when you get updates of your game score
 
