@@ -1,18 +1,17 @@
 import HtmlBoardUI from "./HtmlBoardUI";
+import {
+  getUrlQueryParams,
+  clearUrlQueryParams,
+  getGameStateFromLocalStorage,
+  setGameStateToStorage,
+  clearGameStorage,
+} from "./utils";
 
 interface GameCoreProps {
   gameWrapper: HTMLDivElement;
   gameSize?: number;
   obstaclesNum?: number;
 }
-
-/**
- * TODO:
- * - ✅ Save Game status (score and board state) in localstorage
- * - ✅ Share game using query
- * - ✅ Notifications component
- * - New Game form (UI for size of board / UI of obstacles)
- */
 
 class GameCore {
   private gameWrapper: HTMLDivElement;
@@ -55,7 +54,8 @@ class GameCore {
   // Public Methods
   public startNewGame(boardSize: number, obstacles: number) {
     this.board = [];
-    this.clearGameStorage();
+    this.score = 0;
+    clearGameStorage();
     this.boardUI?.destroy();
     this.setBoard(boardSize);
     this.initBoard();
@@ -75,20 +75,14 @@ class GameCore {
   }
 
   // Core
-  private getUrlQueryParams() {
-    const urlSearchParams = new URLSearchParams(window.location.search);
-    return Object.fromEntries(urlSearchParams.entries());
-  }
-  private clearUrlQueryParams() {
-    window.history.replaceState({}, "", "/");
-  }
   private getGameStateFromStorage() {
-    const params = this.getUrlQueryParams();
-    const board = params.board || window.localStorage.getItem("board");
-    const score = params.score || window.localStorage.getItem("score");
+    const queryParams = getUrlQueryParams();
+    const localStorageParams = getGameStateFromLocalStorage();
+    const board = queryParams.board || localStorageParams.board;
+    const score = queryParams.score || localStorageParams.score;
 
-    if (params.board || params.score) {
-      this.clearUrlQueryParams();
+    if (queryParams.board || queryParams.score) {
+      clearUrlQueryParams();
     }
 
     if (!board || !score) {
@@ -99,14 +93,6 @@ class GameCore {
       board: JSON.parse(board),
       score: +score,
     };
-  }
-  private setGameStateToStorage() {
-    window.localStorage.setItem("board", JSON.stringify(this.board));
-    window.localStorage.setItem("score", `${this.score}`);
-  }
-  private clearGameStorage() {
-    window.localStorage.removeItem("board");
-    window.localStorage.removeItem("score");
   }
   private setBoard(gameSize?: number) {
     const gameStorage = this.getGameStateFromStorage();
@@ -149,7 +135,6 @@ class GameCore {
         }
       }
     }
-
     return false;
   }
   private setRandomTileNum(num = 1) {
@@ -157,13 +142,10 @@ class GameCore {
       console.warn("drawTiles: Board UI not initialized");
       return;
     }
-
     if (!this.isEmptyTile()) {
       return;
     }
-
     let exist = false;
-
     while (!exist) {
       const r = Math.floor(Math.random() * this.rows);
       const c = Math.floor(Math.random() * this.columns);
@@ -182,7 +164,6 @@ class GameCore {
       rows: this.rows,
       columns: this.columns,
     });
-
     this.drawTiles();
   }
   private drawTiles() {
@@ -219,22 +200,18 @@ class GameCore {
   private addZeros(rows: number[][], arrLengths: number[]) {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-
       for (let a = 0; a < arrLengths[i]; a++) {
         if (!row[a]) {
           row.push(0);
         }
       }
-
       rows[i] = row;
     }
-
     return rows;
   }
   private splitRow(row: number[]) {
     const arr: number[][] = [];
     let chainIndex = 0;
-
     const add = (num: number) => {
       if (Array.isArray(arr[chainIndex])) {
         arr[chainIndex].push(num);
@@ -243,7 +220,6 @@ class GameCore {
       arr[chainIndex] = [];
       arr[chainIndex].push(num);
     };
-
     for (let i = 0; i < row.length; i++) {
       if (
         row[i] < 0 &&
@@ -252,16 +228,13 @@ class GameCore {
       ) {
         chainIndex++;
       }
-
       if (arr[chainIndex]?.[arr[chainIndex]?.length - 1] === -1) {
         if (row[i] !== -1) {
           chainIndex++;
         }
       }
-
       add(row[i]);
     }
-
     return arr;
   }
   private getChunksLengths(arr: number[][]) {
@@ -272,18 +245,15 @@ class GameCore {
   }
   private flatten(localRow: number[][]) {
     let res: number[] = [];
-
     for (let i = 0; i < localRow.length; i++) {
       res = res.concat(localRow[i]);
     }
-
     return res;
   }
   private slide(row: number[]) {
     let localRow = this.splitRow(row);
     const chunksLengths = this.getChunksLengths(localRow);
     localRow = this.removeZeros(localRow);
-
     for (let l = 0; l < localRow.length; l++) {
       const r = localRow[l];
       for (let i = 0; i < r.length - 1; i++) {
@@ -367,11 +337,9 @@ class GameCore {
         const right = this.board?.[r + 1]?.[c];
         const down = this.board?.[r]?.[c + 1];
         const left = this.board?.[r - 1]?.[c];
-
         if (up === 0 || right === 0 || down === 0 || left === 0) {
           return true;
         }
-
         if (
           current >= 0 &&
           (current === up ||
@@ -383,7 +351,6 @@ class GameCore {
         }
       }
     }
-
     return false;
   }
   private onSlideEnd() {
@@ -392,7 +359,7 @@ class GameCore {
     if (!this.canMove()) {
       this.onUpdateGameOverFunction();
     }
-    this.setGameStateToStorage();
+    setGameStateToStorage(this.board, this.score);
   }
   private addKeyboardListeners() {
     document.addEventListener("keydown", (event) => {

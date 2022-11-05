@@ -1,6 +1,6 @@
 <script setup lang="ts" name="NewGameForm">
 import { ref } from "vue";
-import OptionsInput from "./OptionsInput.vue";
+import OptionsInput from "@/components/OptionsInput.vue";
 
 const obstacles = ref<number>(3);
 const boardSize = ref<number>(4);

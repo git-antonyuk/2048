@@ -1,14 +1,15 @@
 <script setup lang="ts" name="TheGame">
-import GameCore from "./Game/GameCore";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import GameCore from "@/modules/Game/GameCore";
 import useNotifications from "@/composables/useNotifications";
-import HowToPlay from "./HowToPlay.vue";
-import TheScore from "./TheScore.vue";
-import GameActions from "./GameActions.vue";
-import NewGameForm from "./NewGameForm.vue";
+import HowToPlay from "@/components/HowToPlay.vue";
+import TheScore from "@/components/TheScore.vue";
+import GameActions from "@/components/GameActions.vue";
+import NewGameForm from "@/components/NewGameForm.vue";
+
 const { openNotification } = useNotifications();
 
-let game: GameCore;
+let game: GameCore | null = null;
 const gameRef = ref();
 const score = ref(0);
 const showNewGameForm = ref(false);
@@ -22,7 +23,7 @@ const updateScore = (num: number) => {
 };
 
 const updateGameWin = () => {
-  game.setDisabled(true);
+  game?.setDisabled(true);
   openNotification({
     title: "WIN WIN WIN!",
     message: "Cool! Let's play one more time, start new game! 🤘",
@@ -31,7 +32,7 @@ const updateGameWin = () => {
 };
 
 const updateGameOver = () => {
-  game.setDisabled(true);
+  game?.setDisabled(true);
   openNotification({
     title: "Game Over!",
     message: "Ohh, no 😩... Try one more time. Start new game 🦾",
@@ -63,9 +64,9 @@ const startNewGame = ({
   obstacles: number;
   boardSize: number;
 }) => {
-  game.setDisabled(false);
+  game?.setDisabled(false);
   setShowNewGameForm(false);
-  game.startNewGame(boardSize, obstacles);
+  game?.startNewGame(boardSize, obstacles);
 };
 
 onMounted(() => {
@@ -78,6 +79,10 @@ onMounted(() => {
   game.onUpdateScore(updateScore);
   game.onUpdateWin(updateGameWin);
   game.onUpdateGameOver(updateGameOver);
+});
+
+onBeforeUnmount(() => {
+  game = null;
 });
 </script>
 

@@ -9,7 +9,6 @@ const { isActive } = useNotifications();
   <div :class="{ 'blur-game': isActive }">
     <TheGame />
   </div>
-
   <NotificationsWrapper />
 </template>
 
